@@ -8,7 +8,7 @@ class Agent:
         Define any local variables here
         '''
         pass
-    def getAction(state : State) -> int:
+    def getAction(self, state : State) -> int:
         '''
         Return the amount of fuel to burn
         '''

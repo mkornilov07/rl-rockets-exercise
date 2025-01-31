@@ -2,6 +2,7 @@ import sys
 sys.path.append("..")
 from gui import GUI
 from rocket import Agent
+from state import State
 
 INITIAL_FUEL = 1000
 
