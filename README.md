@@ -1,1 +1,1 @@
-# rl-rockets-exercise
+# Rocket Launching R
