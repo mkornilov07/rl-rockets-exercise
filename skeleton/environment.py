@@ -1,13 +1,7 @@
 import sys
 sys.path.append("..")
-from rocket import Agent
-from typing import NamedTuple
 from gui import GUI
-class State(NamedTuple):
-    time : int
-    fuelLeft : int
-    velocity : float
-    height : float
+from rocket import Agent
 
 INITIAL_FUEL = 1000
 
@@ -20,6 +14,7 @@ class Environment():
         self.height : float = 0.
         self.velocity : float = 0.
         self.maxHeight : float = 0.
+    
     def connectAgent(self, agent : Agent):
         self.agent = agent
     
@@ -43,7 +38,9 @@ class Environment():
         self.height += self.velocity
         self.maxHeight = max(self.maxHeight, self.height)
         self.time += 1
+        
         self.velocity = self.velocity + action - 1. #weird function to calculate velocity (placeholder for now)
+    
     def isGameOver(self) -> bool:
         return self.time != 0 and self.height <= 0.
     

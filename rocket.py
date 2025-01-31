@@ -1,9 +1,9 @@
 import sys
 sys.path.append("skeleton")
-from environment import State
+from state import State
 
 class Agent:
-    def __init__():
+    def __init__(self):
         '''
         Define any local variables here
         '''
