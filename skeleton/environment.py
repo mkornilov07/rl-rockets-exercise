@@ -52,7 +52,7 @@ class Environment():
     
     def calculateVelocity(self, action : int) -> float:
         return ((0.95 * self.velocity - 1 + math.log(random.random() * 5 * action + 0.2) + 0.1 * action ** 0.7) / (1 + self.height / 500) +
-            + int(action ** 1.4 / (self.height + 1) - random.random() * action ** 0.3) )
+            + int(action ** 1.4 / (self.height + 1) - random.random() * action ** 0.3) - 0.0005 * self.fuelLeft)
 
 
     def score(self) -> float:
