@@ -5,6 +5,7 @@ from rocket import Agent
 from state import State
 import random, math
 
+MAX_NUM_ROUNDS = 2000
 INITIAL_FUEL = 1000
 
 class Environment():
@@ -46,13 +47,14 @@ class Environment():
         reward : float = max(0., self.height - self.maxHeight) # change in max height
         state : State = State(self.time, self.fuelLeft, self.velocity, self.height)
 
-        isTerminalState : bool = self.fuelLeft < INITIAL_FUEL and self.height <= 0
+        isTerminalState : bool = self.fuelLeft < INITIAL_FUEL and self.height <= 0 or self.time > MAX_NUM_ROUNDS
 
         return state, reward, isTerminalState
     
     def calculateVelocity(self, action : int) -> float:
-        return ((0.95 * self.velocity - 1 + math.log(random.random() * 5 * action + 0.2) + 0.1 * action ** 0.7) / (1 + self.height / 500) +
-            + int(action ** 1.4 / (self.height + 1) - random.random() * action ** 0.3) - 0.0005 * self.fuelLeft)
+        return ((0.9 * self.velocity - 1 + math.log(random.random() * 5 * action + 0.2) + 0.1 * action ** 0.7) / (1 + self.height / 500) +
+            + int(action ** 1.6 / (self.height + 1000) - random.random() * action ** 0.3) - (0.0005 + 0.001 * random.random()) * self.fuelLeft + 5 * math.sin(action * 0.24) * math.exp(-action * 0.1) 
+            - 0.2 * self.velocity * math.cosh(0.01 * action + random.random()* 0.02))
 
 
     def score(self) -> float:
