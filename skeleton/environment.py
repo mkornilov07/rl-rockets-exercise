@@ -7,55 +7,58 @@ import random, math
 
 MAX_NUM_ROUNDS = 2000
 INITIAL_FUEL = 1000
+GRAVITY = 20
+WIND_RESISTANCE = 12
 
 class Environment():
-    def __init__(self, logging = True):
-        self.logging : bool = logging
-        self.time : int = 0
-        self.fuelLeft : int = INITIAL_FUEL
-        self.height : float = 0.
-        self.velocity : float = 0.
-        self.maxHeight : float = 0.
+    def __init__(self, logging=True):
+        self.logging = logging
+        self.time = 0
+        self.fuelLeft = INITIAL_FUEL
+        self.height = 0.0
+        self.velocity = 0.0
+        self.maxHeight = 0.0
+        self.prevHeight = 0.0
+        self.wind = random.uniform(-WIND_RESISTANCE, WIND_RESISTANCE)
+        self.gravity = random.uniform(-GRAVITY, GRAVITY)
         if self.logging:
             self.f = open("log.txt", "w")
+            self.f.write("Time,Height,Fuel\n")
 
     def reset(self):
         if self.logging:
             self.f.close()
             self.f = open("log.txt", "w")
             self.f.write("Time,Height,Fuel\n")
-        self.time = 0
-        self.fuelLeft = INITIAL_FUEL
-        self.height = 0.
-        self.velocity = 0.
-        self.maxHeight = 0.
-        state : State = State(self.time, self.fuelLeft, self.velocity, self.height)
-        return state
+        self.__init__()
+        return State(self.time, self.fuelLeft, self.wind, self.gravity)
 
-    def step(self, reqAction : int) -> tuple[State, int]:
+    def step(self, reqAction: int):
         if self.logging:
             self.f.write(f"{self.time},{self.height},{self.fuelLeft}\n")
-        
-        action : int = min(self.fuelLeft, reqAction)
-        if action != reqAction:
-            print(f"Requested {reqAction} fuel, but only {self.fuelLeft} remaining")
-        self.fuelLeft -= action # consume fuel
-        self.velocity = self.calculateVelocity(action) #weird function to calculate velocity (placeholder for now)
-        self.height += self.velocity # change height
-        self.maxHeight = max(self.maxHeight, self.height) # update max height
-        self.time += 1
-        reward : float = max(0., self.height - self.maxHeight) # change in max height
-        state : State = State(self.time, self.fuelLeft, self.velocity, self.height)
 
-        isTerminalState : bool = self.fuelLeft < INITIAL_FUEL and self.height <= 0 or self.time > MAX_NUM_ROUNDS
+        action = min(self.fuelLeft, int(reqAction))
+        self.fuelLeft -= action
+        self.velocity = self.calculateVelocity(action)
+        self.height = max(0.0, self.height + self.velocity)
+
+        reward = max(0, self.height - self.prevHeight)
+
+        self.maxHeight = max(self.maxHeight, self.height)
+        self.prevHeight = self.height
+        self.time += 1
+
+        self.prevAction = action
+        self.wind = random.uniform(-WIND_RESISTANCE, WIND_RESISTANCE)
+        self.gravity = random.uniform(-GRAVITY, GRAVITY)
+        state = State(self.time, self.fuelLeft, self.wind, self.gravity)
+        isTerminalState = (self.fuelLeft == 0 and self.height <= 0) or (self.time >= MAX_NUM_ROUNDS)
 
         return state, reward, isTerminalState
-    
-    def calculateVelocity(self, action : int) -> float:
-        return (((0.7 + 0.3 * random.random()) * self.velocity - 1 + math.log(random.random() * 5 * action + 0.2) + 0.1 * action ** 0.7) / (1 + self.height / 500) +
-            + int(action ** (1.4 + 0.4 * random.random()) / (self.height + 1000) - random.random() * action ** 0.3) - (0.0005 + 0.001 * random.random()) * self.fuelLeft + 5 * math.sin(action * 0.24) * math.exp(-action * 0.1) 
-            - 0.2 * self.velocity * math.cosh(0.01 * action + random.random()* 0.02))
 
+    def calculateVelocity(self, action: int) -> float:
+        return ((self.velocity + action ** 0.66) * 0.9 - (self.wind * action + self.gravity) % 4. - math.cos(math.exp(self.gravity * self.wind + random.random()) + action) * 4 / (1000 + self.fuelLeft) ** 1.2
+                - ((abs(self.wind) ** 1.12 * self.fuelLeft +action ** 1.6 + 2.*random.random()) % 10.5) % 6.3 + action ** 1.2 / (2.5 + action ** 0.7) + action ** 0.2 * math.sin(self.wind * action * self.gravity * self.fuelLeft + 0.2 * random.random()))
 
     def score(self) -> float:
         return self.maxHeight
