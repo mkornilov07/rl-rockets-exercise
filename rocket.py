@@ -12,4 +12,4 @@ class Agent:
         '''
         Return the amount of fuel to burn
         '''
-        return 10 if state.fuelLeft > 10 else state.fuelLeft
+        return 100 if state.fuelLeft > 100 else state.fuelLeft
